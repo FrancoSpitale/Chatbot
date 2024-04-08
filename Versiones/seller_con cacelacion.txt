@@ -89,26 +89,11 @@ const flowSeller = addKeyword(EVENTS.ACTION)
             let awaitingConfirmation = false;
 
             if (ctx && ctx.body) {
-
-                const responseText = ctx.body.trim().toLowerCase();
-                const cancelRegex = /(cancelar)(?:\s+(\d+))?/; // Expresión regular ajustada con grupos de captura
-                const cancelMatch = responseText.match(cancelRegex);
-
-                let cancelCommand = null;
-                let cancelNumber = null;
-
-                if (cancelMatch) {
-                    cancelCommand = cancelMatch[1]; // Captura "cancelar"
-                    cancelNumber = cancelMatch[2] ? parseInt(cancelMatch[2], 10) : null; // Captura el número si está presente
-                }
-
-                // Ahora puedes usar 'cancelCommand' y 'cancelNumber' según sea necesario
-                console.log("Comando:", cancelCommand); // Será "cancelar"
-                console.log("Número:", cancelNumber); // Será el número si se proporcionó, o null si no
+                const ResponseText = ctx.body.trim().toLowerCase();
                 const dataBase = 'Sin datos'; // Considera integrar una base de datos real aquí
                 console.log({ dataBase });
                 const promptInfo = generatePromptSeller(history, dataBase);
-                if ( cancelCommand === 'cancelar') {
+                if (ResponseText === 'cancelar') {
                     
               
                     try {
@@ -130,36 +115,18 @@ const flowSeller = addKeyword(EVENTS.ACTION)
                             return date > today;
                         };
                     
-                         
                         appointments.forEach(appointment => {
-                           
                             const appointmentDate = parseDate(appointment.date);
                             if (isFutureDate(appointmentDate) && appointment.phone == ctx.from) {
                                 console.log(`Tienes una cita futura con ${appointment.name} en ${appointment.date} número de turno ${appointment.NumeroFila}.`);
                                 // Aquí puedes utilizar el número de teléfono para enviar un mensaje
-                                //provider.sendText(`${appointment.phone}@c.us`, `${appointment.name} recuerda, tienes una cita programada para ${appointment.date}.`);
-                                const confirmationMessage = `${appointment.name} tienes un turno en ${appointment.date} número de turno ${appointment.NumeroFila}. Si necesitas eliminarlo escribe: Cancelar ${appointment.NumeroFila}`; 
-                                flowDynamic([{ body: confirmationMessage, delay: generateTimer(150, 250) }]);
-
-                                console.log(`Ingresar turno a eliminar.`);
-                                const ResponseText = ctx.body.trim().toLowerCase();
-                                const promptInfo = generatePromptSeller(history, dataBase);
-                                console.log(`${ResponseText}`);
-                                console.log(`Turno a cancelar ${ctx.body}`);
-                                
+                                // provider.sendText(`${appointment.phone}@c.us`, `${appointment.name} recuerda, tienes una cita programada para ${appointment.date}.`);
                                 const dateObject = {
                                  
                                     NumeroFila: appointment.NumeroFila
                                 }
                         
-                                if(cancelNumber==appointment.NumeroFila)
-                                {
-                                const confirmationMessage = `Turno Eliminado.`; 
-                             
-                                flowDynamic([{ body: confirmationMessage, delay: generateTimer(150, 250) }]);
                                 appToCalendar_2(dateObject )
-                                }
-
                             }
                         });
                     } catch (error) {
@@ -167,25 +134,24 @@ const flowSeller = addKeyword(EVENTS.ACTION)
                     }
                     
 
-                                  
+                    
+                    await flowDynamic([{ body: cancelConfirmationMessage, delay: generateTimer(150, 250) }]);
 
 
                     return; // Interrumpir aquí si el usuario quiere cancelar
                 }
 
                 // Verificar si es la fase inicial de saludo/conversación
-                if (history.length === 0 || responseText === 'hola') {
-                    const welcomeMessage = `¡Hola! Bienvenido🤍
-
-Elige la opción del tratamiento que quieras agendar:
+                if (history.length === 0 || ResponseText === 'hola') {
+                    const welcomeMessage = `¡Hola! Bienvenido al Consultorio Odontológico de Anabella Spiazzi. Aquí te ofrecemos una variedad de tratamientos, incluyendo:
 1. Consulta (1 hora)
 2. Interconsulta (30 minutos)
 3. Instalación ortodoncia (2 horas)
-4. Control ortodoncia (1 hora)
+4. Control ortodoncia (1 hora y 20 minutos)
 5. Instalación ortopedia (aparatos) (30 minutos)
-6. Control ortopedia (aparatos) (30 minutos)
+6. Control ortopedia (aparatos) (1 hora)
 7. Urgencia ortodoncia/ortopedia (30 minutos)
-8. Limpieza dental (solo si estás bajo tratamiento) (2 horas)
+8. Limpieza dental (2 horas)
 9. Blanqueamiento externo profesional (2 horas)
 10. Blanqueamiento externo ambulatorio (1 hora)
 11. Control pos blanqueamiento (30 minutos)
@@ -193,8 +159,7 @@ Elige la opción del tratamiento que quieras agendar:
 13. Contención removible (1 hora y 30 minutos)
 14. Contención fija (1 hora y 30 minutos)
 15. Contención fija + limpieza (2 horas y 30 minutos)
-                  
-Por favor, responde con su número correspondiente🦷`;
+¿En qué tratamiento estás interesado? Por favor, responde con su número correspondiente.`;
                       
 
                     await flowDynamic([{ body: welcomeMessage, delay: generateTimer(150, 250) }]);

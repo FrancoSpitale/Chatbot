@@ -5,7 +5,6 @@ import flow from './flows';
 import { provider } from './provider';
 import cron from 'node-cron';
 import { getCurrentCalendar } from "./services/calendar"; // Asegúrate de que la ruta de importación es correcta
-import { getCurrentAppointments } from "./services/calendar"; // Asegúrate de que la ruta de importación es correcta
 import { parse, isTomorrow } from 'date-fns';
 
 const PORT = process.env.PORT ?? 3001;
@@ -23,24 +22,28 @@ const main = async () => {
         flow,
     }, { extensions: { ai } });
 
-    cron.schedule("0 11 * * *", async () => {
-    // cron.schedule('* * * * *', async () => {   
+    // Comprobación y envío de mensajes sobre citas para mañana
+    cron.schedule("*/1 * * * *", async () => {
         try {
-            const appointments = await getCurrentAppointments();
-            console.log(appointments);
-    
-            if (!Array.isArray(appointments)) {
-                console.error('La lista de citas no es un arreglo');
+            const calendar = await getCurrentCalendar();
+            console.log(calendar);
+          
+            if (!Array.isArray(calendar)) {
+                console.error('El calendario no es un arreglo');
                 return;
             }
-    
-            appointments.forEach(appointment => {
+
+            calendar.forEach(appointment => {
                 const appointmentDate = parseDate(appointment.date);
                 if (isTomorrow(appointmentDate)) {
                     console.log(`Tienes una cita mañana con ${appointment.name} en ${appointment.date}.`);
-                    // Aquí puedes utilizar el número de teléfono para enviar un mensaje
-                    provider.sendText(`${appointment.phone}@c.us`, `${appointment.name} recuerda, tienes una cita programada para mañana ${appointment.date}.`);
+                
+                
 
+                       
+                    
+                    // Usar el número de teléfono de la cita para enviar el mensaje
+                    //provider.sendText(`${appointment.phone}@c.us`, "Recuerda, tienes una cita programada para mañana.");
                 }
             });
         } catch (error) {

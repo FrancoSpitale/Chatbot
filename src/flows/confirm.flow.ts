@@ -2,8 +2,11 @@ import { addKeyword, EVENTS } from "@builderbot/bot";
 import { clearHistory } from "../utils/handleHistory";
 import { addMinutes, format } from "date-fns";
 import { appToCalendar } from "src/services/calendar";
+import { getDurationMeet } from "../config"; // Importa la función de configuración
+import { getConfig } from './config';
 
-const DURATION_MEET = process.env.DURATION_MEET ?? 45
+
+//let DURATION_MEET = process.src/flows/seller.flow.ts.DURATION_MEET;
 /**
  * Encargado de pedir los datos necesarios para registrar el evento en el calendario
  */
@@ -25,13 +28,15 @@ const flowConfirm = addKeyword(EVENTS.ACTION).addAction(async (_, { flowDynamic 
         if (!ctx.body.includes('@')) {
             return fallBack(`Debes ingresar un mail correcto`)
         }
+        const durationMeet = getDurationMeet(); // Obtiene el valor actualizado desde el módulo de configuración
 
         const dateObject = {
             name: state.get('name'),
             email: ctx.body,
             startDate: format(state.get('desiredDate'), 'yyyy/MM/dd HH:mm:ss'),
-            endData: format(addMinutes(state.get('desiredDate'), +DURATION_MEET), 'yyyy/MM/dd HH:mm:ss'),
-            phone: ctx.from
+            endData: format(addMinutes(state.get('desiredDate'), durationMeet), 'yyyy/MM/dd HH:mm:ss'),
+            phone: ctx.from,
+            NumeroFila: ctx.from
         }
 
         await appToCalendar(dateObject)
@@ -40,4 +45,4 @@ const flowConfirm = addKeyword(EVENTS.ACTION).addAction(async (_, { flowDynamic 
         await flowDynamic('Listo! agendado Buen dia')
     })
 
-export { flowConfirm }
+export { flowConfirm } 
