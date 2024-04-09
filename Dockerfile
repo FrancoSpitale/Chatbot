@@ -12,7 +12,7 @@ RUN apk add --no-cache \
 
 COPY . .
 RUN pnpm i
-RUN pnpm run build
+
 
 #Etapa de producción
 FROM builder as deploy
