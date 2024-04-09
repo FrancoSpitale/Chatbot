@@ -19,8 +19,10 @@ RUN apk add --no-cache git
 COPY . .
 
 # Instalar las dependencias y construir el proyecto
-RUN pnpm i
+RUN pnpm -v
+RUN ls -la
 RUN pnpm build
+
 
 # Etapa de producción para ejecutar la aplicación
 FROM node:21-alpine3.18 as deploy
