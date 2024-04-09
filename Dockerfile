@@ -1,4 +1,4 @@
-# Use a specific hash for reproducibility
+# Use a specific version of node with Alpine for reproducibility
 FROM node:21-alpine3.18 as builder
 
 # Enable Corepack and prepare pnpm
@@ -12,26 +12,28 @@ WORKDIR /app
 # Copy package files
 COPY package*.json pnpm-lock.yaml ./
 
-# Install Git and any other dependencies
+# Install Git and any other dependencies you might need
 RUN apk add --no-cache git 
 
-# Copy the source code
+# Copy the source code into the container
 COPY . .
 
 # Install dependencies
 RUN pnpm i
 
-# Show what's in our working directory
+# Log what's in our working directory
 RUN ls -al
 
-# Attempt to build, log the output to a file for troubleshooting
+# Build the application, log the output for troubleshooting
 RUN pnpm build | tee build.log
 
+# Check if 'dist' directory was created
+RUN if [ ! -d "dist" ]; then echo "Build failed: 'dist' directory not found"; exit 1; fi
 
 # Production stage
 FROM node:21-alpine3.18 as deploy
 
-# Set non-root user and add user to avoid permission issues
+# Create a non-root user for better security
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 USER appuser
 
@@ -42,13 +44,10 @@ COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/package.json ./package.json
 COPY --from=builder /app/pnpm-lock.yaml ./pnpm-lock.yaml
 
-# Install production dependencies
+# Install only production dependencies
 RUN pnpm install --frozen-lockfile --production
 
-# Set non-root user to run your application
-USER appuser
-
-# Set environment variables (if needed, replace with your own or pass through --build-arg)
+# Set necessary environment variables (if needed, replace or pass through --build-arg)
 ARG RAILWAY_STATIC_URL
 ARG PUBLIC_URL
 ARG PORT
