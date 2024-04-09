@@ -12,7 +12,7 @@ RUN apk add --no-cache \
 
 COPY . .
 RUN pnpm i
-
+RUN pnpm build
 
 #Etapa de producción
 FROM builder as deploy
@@ -20,8 +20,8 @@ FROM builder as deploy
 ARG RAILWAY_STATIC_URL
 ARG PUBLIC_URL
 ARG PORT
-
+COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/package.json /app/pnpm-lock.yaml ./
 
 RUN pnpm install --frozen-lockfile --production
-CMD ["pnpm", "start"]
+CMD ["npm", "start"]
