@@ -1,47 +1,64 @@
-# Usando el builder pattern para construir la aplicación
+# Use a specific hash for reproducibility
 FROM node:21-alpine3.18 as builder
 
-# Habilitar Corepack y preparar pnpm
+# Enable Corepack and prepare pnpm
 RUN corepack enable && corepack prepare pnpm@latest --activate
 ENV PNPM_HOME=/usr/local/pnpm-global
-ENV PATH=$PNPM_HOME:$PATH
+ENV PATH="$PNPM_HOME:$PATH"
 
-# Establecer el directorio de trabajo en el contenedor
+# Set the working directory in the container
 WORKDIR /app
 
-# Copiar los archivos de definición de paquete
+# Copy package files
 COPY package*.json pnpm-lock.yaml ./
 
-# Instalar git y cualquier otra dependencia necesaria
+# Install Git and any other dependencies
 RUN apk add --no-cache git 
 
-# Copiar el código fuente de la aplicación al contenedor
+# Copy the source code
 COPY . .
 
-# Instalar las dependencias y construir el proyecto
-RUN pnpm -v
-RUN ls -la
-RUN pnpm build
+# Install dependencies
+RUN pnpm i
 
+# Show what's in our working directory
+RUN ls -al
 
-# Etapa de producción para ejecutar la aplicación
+# Attempt to build, log the output to a file for troubleshooting
+RUN pnpm build | tee build.log
+
+# Production stage
 FROM node:21-alpine3.18 as deploy
 
-# Definir variables de entorno para la etapa de producción
+# Set non-root user and add user to avoid permission issues
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+USER appuser
+
+# Copy built assets from the builder stage
+COPY --from=builder /app/dist ./dist
+
+# Copy package files from the builder stage
+COPY --from=builder /app/package.json ./package.json
+COPY --from=builder /app/pnpm-lock.yaml ./pnpm-lock.yaml
+
+# Install production dependencies
+RUN pnpm install --frozen-lockfile --production
+
+# Set non-root user to run your application
+USER appuser
+
+# Set environment variables (if needed, replace with your own or pass through --build-arg)
 ARG RAILWAY_STATIC_URL
 ARG PUBLIC_URL
 ARG PORT
 
-# Copiar los archivos de construcción del 'builder' a la etapa de producción
-COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/package.json ./package.json
-COPY --from=builder /app/pnpm-lock.yaml ./pnpm-lock.yaml
+ENV RAILWAY_STATIC_URL=${RAILWAY_STATIC_URL}
+ENV PUBLIC_URL=${PUBLIC_URL}
+ENV PORT=${PORT}
 
-# Instalar solo las dependencias de producción
-RUN pnpm install --frozen-lockfile --production
-
-# Exponer el puerto en el que corre la aplicación
+# Expose the port the app runs on
 EXPOSE $PORT
 
-# Definir el comando para iniciar la aplicación
+# Define the command to run the app
 CMD ["pnpm", "start"]
+
