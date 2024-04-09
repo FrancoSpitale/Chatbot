@@ -26,7 +26,7 @@ RUN ls -al
 
 # Attempt to build, log the output to a file for troubleshooting
 RUN pnpm build | tee build.log
-RUN ls -al dist/
+
 
 # Production stage
 FROM node:21-alpine3.18 as deploy
