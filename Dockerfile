@@ -20,7 +20,7 @@ FROM builder as deploy
 ARG RAILWAY_STATIC_URL
 ARG PUBLIC_URL
 ARG PORT
-COPY --from=builder /app/dist ./dist
+
 COPY --from=builder /app/package.json /app/pnpm-lock.yaml ./
 
 RUN pnpm install --frozen-lockfile --production
