@@ -2,7 +2,6 @@
   "name": "base-app",
   "version": "1.0.0",
   "description": "",
-  "type": "module",
   "scripts": {
   "prestart": "npx eslint . --no-ignore",
   "start": "node ./dist/app.js",
