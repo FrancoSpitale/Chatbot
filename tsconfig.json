@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
-    "target": "ESNext",  // Alineado con las últimas características ECMAScript soportadas por Node.js
-    "module": "ESNext",  // Asegura compatibilidad con módulos ES nativos
+    "target": "ESNext",
+    "module": "ESNext",
     "declaration": false,
     "moduleResolution": "node",
     "removeComments": true,
@@ -15,6 +15,12 @@
     "incremental": true,
     "skipLibCheck": true
   },
-  "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist"]
+  "include": [
+    "src/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist"
+  ]
 }
+
